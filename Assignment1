@@ -1,0 +1,172 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import csv
+
+# Read data from CSV
+with open('D3.csv', 'r') as file: #/D3
+    reader = csv.DictReader(file)
+
+    # Prepare empty lists to store the columns
+    X1 = []
+    X2 = []
+    X3 = []
+    Y = []
+
+    # Iterate over each row and extract the values of X1, X2, X3, and Y
+    for row in reader:
+        X1.append(float(row['X1']))
+        X2.append(float(row['X2']))
+        X3.append(float(row['X3']))
+        Y.append(float(row['Y']))
+
+
+X1 = np.c_[np.ones(len(X1)), X1]
+X2 = np.c_[np.ones(len(X2)), X2]
+X3 = np.c_[np.ones(len(X3)), X3]
+
+
+# Define the gradient descent function
+def gradientDescent(X, y, theta, alpha, iterations):
+    m = len(y)
+    cost_history = np.zeros(iterations)
+
+    for i in range(iterations):
+        predictions = X.dot(theta)
+        errors = predictions - y  # Calculate errors
+        sum_delta = (alpha / m) * X.T.dot(errors)  # Gradient calculation
+        theta -= sum_delta  # Update theta
+
+        cost_history[i] = computeCost(X, y, theta)
+
+    return theta, cost_history
+
+# Compute cost function
+def computeCost(X, y, theta):
+    m = len(y)
+    predictions = X.dot(theta)
+    errors = predictions - y
+    sqrErrors = np.square(errors)
+    cost = (1 / (2 * m)) * np.sum(sqrErrors)
+    return cost
+
+#Problem 1
+
+theta_initial1 = np.zeros(X1.shape[1])  # Initialize theta
+alpha1 = 0.07  # Learning rate
+iterations = 1000
+
+# Run gradient descent
+theta_final1, cost_history1 = gradientDescent(X1, Y, theta_initial1, alpha1, iterations)
+
+theta_initial2 = np.zeros(X2.shape[1])
+alpha2 = 0.01
+
+theta_final2, cost_history2 = gradientDescent(X2, Y, theta_initial2, alpha2, iterations)
+
+theta_initial3 = np.zeros(X3.shape[1])
+alpha3 = 0.08
+
+
+theta_final3, cost_history3 = gradientDescent(X3, Y, theta_initial3, alpha3, iterations)
+
+
+# Question 1
+print(f"Final linear model for X1: Y = {theta_final1[0]} + {theta_final1[1]}*X1")
+print(f"Final linear model for X2: Y = {theta_final2[0]} + {theta_final2[1]}*X2")
+print(f"Final linear model for X3: Y = {theta_final3[0]} + {theta_final3[1]}*X3")
+
+#Question 2
+plt.scatter(X1[:, 1], Y, color='blue', label='Original Data X1')
+plt.plot(X1[:, 1], X1.dot(theta_final1), color='red', label='Regression Model X1')
+plt.title("Final Regression Model for X1")
+plt.xlabel("X1")
+plt.ylabel("Y")
+plt.legend()
+plt.show()
+
+plt.scatter(X2[:, 1], Y, color='blue', label='Original Data X2')
+plt.plot(X2[:, 1], X2.dot(theta_final2), color='red', label='Regression Model X2')
+plt.title("Final Regression Model for X2")
+plt.xlabel("X2")
+plt.ylabel("Y")
+plt.legend()
+plt.show()
+
+plt.scatter(X3[:, 1], Y, color='blue', label='Original Data X3')
+plt.plot(X3[:, 1], X3.dot(theta_final3), color='red', label='Regression Model X3')
+plt.title("Final Regression Model for X3")
+plt.xlabel("X3")
+plt.ylabel("Y")
+plt.legend()
+plt.show()
+
+
+# Plot cost history
+plt.plot(range(iterations), cost_history1)
+plt.title("Cost over iterations for X1")
+plt.xlabel("Iterations")
+plt.ylabel("Cost")
+plt.show()
+
+# Plot cost history
+plt.plot(range(iterations), cost_history2)
+plt.title("Cost over iterations for X2")
+plt.xlabel("Iterations")
+plt.ylabel("Cost")
+plt.show()
+
+# Plot cost history
+plt.plot(range(iterations), cost_history3)
+plt.title("Cost over iterations for X3")
+plt.xlabel("Iterations")
+plt.ylabel("Cost")
+plt.show()
+
+#Question 3:
+# Print final cost
+print(f"Final cost for X1: {cost_history1[-1]}")
+print(f"Final cost for X2: {cost_history2[-1]}")
+print(f"Final cost for X3: {cost_history3[-1]}")
+
+#Problem 2
+
+# Combine X1, X2, X3 into one feature matrix
+X_combined = np.column_stack((X1[:, 1:], X2[:, 1:], X3[:, 1:]))
+
+X_combined = np.c_[np.ones(len(X_combined)), X_combined]  # Add a column of ones for bias
+
+Y = np.array(Y)
+
+theta_initial = np.zeros(X_combined.shape[1])
+
+alpha = 0.09  # Learning rate
+iterations = 1000  # Number of iterations
+
+theta_final, cost_history = gradientDescent(X_combined, Y, theta_initial, alpha, iterations)
+
+#Question 1
+print(f"Final linear model for X1, X2, X3: \nY = {theta_final[0]} + {theta_final[1]}*X1 + {theta_final[2]}*X2 + {theta_final[3]}*X3")
+
+#Question 2
+# Plot cost history
+plt.plot(range(iterations), cost_history, label=f'Learning rate = {alpha}')
+plt.title("Cost over iterations")
+plt.xlabel("Iterations")
+plt.ylabel("Cost")
+plt.legend()
+plt.grid(True)
+plt.show()
+
+print(f"Final cost: {cost_history[-1]}")
+
+#Question 4
+# New data points (X1, X2, X3)
+new_data_points = np.array([[1, 1, 1], [2, 0, 4], [3, 2, 1]])
+
+new_data_points = np.c_[np.ones(new_data_points.shape[0]), new_data_points]  # Add a column of ones for bias
+
+predictions = new_data_points.dot(theta_final)
+
+print("\nPredictions for new data points:")
+for i, prediction in enumerate(predictions):
+    print(f"Prediction for (X1, X2, X3) = {new_data_points[i, 1:]}: Y = {prediction}")
